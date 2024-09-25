@@ -1,0 +1,581 @@
+---
+title: "Assignment 1"
+author: "Cornelia"
+output: html_document
+date: "2024-09-22"
+---
+
+
+# TASK 1
+
+### NUMBER 1
+
+Mobile genetic element variants (MEVs) can influence gene expression and be used in genome-wide association studies (GWAS) to identify potential causes of the development of diseases.
+
+### NUMBER 2
+
+MEGAnE
+
+### NUMBER 3
+
+1. How do MEVs interact with environmental factors to influence disease risk?<br>
+2. Are there age differences related to MEVs and their contributions to disease risk?<br>
+3. Will we find similar findings in European populations?<br>
+
+
+### NUMBER 4
+
+1. Incorporating environmental factors data (e.g., pollution, diet) and applying statistical models to investigate their interactions.<br>
+2. Statistical analyses stratified by age.<br>
+3. Conducting studies among European populations.<br>
+
+
+
+# TASK 2 and 3
+
+Setting up R and packages
+
+```{r, echo = FALSE}
+
+rm(list=ls())
+setwd("C:/Users/Desktop/course/")
+
+```
+
+```{r, eval=F}
+
+install.packages("tidyverse")
+install.packages("svglite")
+
+if (!require("BiocManager", quietly = TRUE)) #install Bioconductor for analysis of high-throughput genomic data
+  install.packages("BiocManager")
+BiocManager::install(version = "3.19")
+
+BiocManager::install(c("GenomicFeatures", "AnnotationDbi"))
+```
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(svglite)
+library(BiocManager)
+```
+
+
+# TASK 4
+
+### Number 1
+```{r, message = FALSE, warning = FALSE}
+data(CO2) #load the data
+```
+
+### Number 2
+```{r}
+?CO2
+```
+
+### Number 3
+```{r}
+
+# The average and median CO2 uptake in Quebec (median 37.15; mean 33.54)
+
+summary(CO2$uptake [CO2$Type %in% "Quebec"]) 
+
+# The average and median CO2 uptake in Mississippi (median 19.30; mean 20.88)
+
+summary(CO2$uptake [CO2$Type %in% "Mississippi"]) 
+
+```
+
+### Number 4
+```{r, eval = F}
+
+BiocManager::install("airway")
+browseVignettes("airway")
+??airway
+
+```
+
+
+```{r, message = FALSE, warning = FALSE}
+library("airway")
+data(airway)
+str(airway)
+dim(airway)
+```
+
+```{r}
+airway_assay <- data.frame(assay(airway)) #extract the gene expression 
+
+dim(airway_assay)  #to see the number of genes and samples
+str(airway_assay)  #to see the structure of the matrix
+
+# count the number of genes not expressed (zero values) in any sample
+airway_assay$total_notexp <- rowSums(airway_assay[, 1:8] == 0)
+table(airway_assay$total_notexp, useNA = "always") #30208 genes are not expressed in any of sample
+
+
+# count the number of genes expressed (non-zero values) in each sample (column) using lapply
+genes_exp_list <- lapply(1:8, function(i) sum(airway_assay[, i] != 0))
+genes_exp <- unlist(genes_exp_list)  #convert to vector
+
+print(genes_exp) #the number of genes expressed in each sample = 24633, 24527, 25699, 23124, 25508, 25998, 24662, 23991
+
+```
+
+
+
+# TASK 5
+
+### Number 1
+```{r}
+a = c(1:100)
+
+ratio_mean_median <- function(x) {
+  # to check if the input is a numeric vector
+  if (!is.numeric(x) || !is.vector(x)) {
+    stop("Input must be a numeric vector.") # using ELSE is unnecessary because the stop() function will terminate the execution if the condition is met 
+  }
+  ratio <- mean(x, na.rm = TRUE) / median(x, na.rm = TRUE)
+  print(ratio)
+}
+ratio_mean_median(a)
+```
+
+
+### Number 2
+
+```{r}
+ratio_mean <- function(x) {
+  # to check if the input is a numeric vector
+  if (!is.numeric(x) || !is.vector(x)) {
+    stop("Input must be a numeric vector.") # using ELSE is unnecessary because the stop() function will terminate the execution if the condition is met 
+  }
+  x_tot <- x[x != min(x, na.rm = TRUE) & x != max(x, na.rm = TRUE)]
+  
+  print(summary(x))
+  print(summary(x_tot))
+  print(mean(x_tot, na.rm = TRUE))
+}
+ratio_mean(a)
+```
+
+
+### Number 3
+
+Why: to write easy-to-read-and-understand codes.<br>
+How: pipe uses “lexical transformation”; focuses verb not noun.<br>
+Not to use: pipes with >10 steps (difficult to debug); have multiple inputs or outputs; graph with complex dependency structure.<br>
+
+### Number 4
+
+The apply family is to reduce the need of loop creation.<br>
+apply() for matrices and data frames.<br>
+lapply() for lists; output as list.<br>
+sapply() for lists; output as value (simplified).<br>
+tapply() for vectors.<br>
+
+
+# TASK 6
+
+```{r, eval = F}
+install.packages("remotes")
+```
+
+```{r, message = FALSE, warning = FALSE}
+library(remotes)
+```
+
+```{r, eval = F}
+install_url("http://emotion.utu.fi/wp-content/uploads/2019/11/nummenmaa_1.0.tar.gz",dependencies=TRUE)
+```
+
+### Number 1A
+
+```{r, echo=FALSE}
+folder = "C:/Users/Desktop/course/Week1/"
+```
+
+
+
+```{r}
+magic_guys <- read.csv(paste0(folder, "magic_guys.csv"))
+
+table(magic_guys$species, useNA = "always")
+
+
+### USING HIST FUNCTION 
+
+##### SPECIES 1
+
+min(magic_guys$length [magic_guys$species %in% "jedi"]) #60.1
+max(magic_guys$length [magic_guys$species %in% "jedi"]) #272.9
+
+hist(magic_guys$length [magic_guys$species %in% "jedi"],
+     main = "Histogram of Jedi's Body Heights", 
+     xlab = "Body Height", 
+     col = "lightblue", 
+     breaks = 20, #to create bin
+     xaxt = 'n') #to remove the default of x-axis label
+axis(1, at = seq(60, 273, by = 20)) #to add new x-axis label based on min and max values
+
+##### SPECIES 2
+
+min(magic_guys$length [magic_guys$species %in% "sith"]) #69.4
+max(magic_guys$length [magic_guys$species %in% "sith"]) #179.1
+
+hist(magic_guys$length [magic_guys$species %in% "sith"],
+     main = "Histogram of Sith's Body Heights", 
+     xlab = "Body Height", 
+     col = "lightblue", 
+     breaks = 20, #to create bin
+     xaxt = 'n') #to remove the default of x-axis label
+axis(1, at = seq(69, 179, by = 20)) #to add new x-axis label based on min and max values
+
+
+### USING GGPLOT FUNCTION 
+
+body_height_geomhisto <- ggplot(magic_guys, aes(x = length, fill = species)) +
+                            geom_histogram(position = "identity", alpha = 0.6, bins = 30) +
+                            labs(title = "Distribution of body heights by species", 
+                                 x = "Body height", 
+                                 y = "Frequency") + 
+                            scale_fill_manual(values = c("lightblue", "lightgreen")) +
+                            theme_minimal() + 
+                            theme(plot.background = element_rect(fill = "white"),  #set plot background to white
+                                  panel.background = element_rect(fill = "white"))  #set panel background to white
+print(body_height_geomhisto)
+
+```
+
+
+### Number 1B
+
+```{r}
+
+### USING BOXPLOT FUNCTION
+
+par(mar = c(7, 7, 7, 7))  #adjust margins if necessary
+boxplot(length ~ species, 
+        data = magic_guys, 
+        main = "Comparison of body heights by species", 
+        xlab = "Species", 
+        ylab = "Body Height", 
+        col = c("lightblue", "lightgreen"),
+        cex = 1.5,          #general text size
+        cex.axis = 1.5,     #axis tick labels size
+        cex.lab = 1.5,      #axis labels size
+        cex.main = 1.5)     #main title size)
+
+body_height_geombox <- ggplot(magic_guys, aes(x = species, y = length, fill = species)) +
+                                geom_boxplot(alpha = 0.7) +
+                                labs(title = "Comparison of body heights by species", 
+                                     x = "Species", 
+                                     y = "Body Height") +
+                                scale_fill_manual(values = c("lightblue", "lightgreen")) +
+                                theme_minimal() + 
+                                theme(plot.background = element_rect(fill = "white"),  #set plot background to white
+                                      panel.background = element_rect(fill = "white"))  #set panel background to white
+print(body_height_geombox)
+
+```
+
+### Number 1C
+
+PNG is for web use or digital presentations (no scaling needed).<br>
+PDF is for print outputs or embedded in documents.<br>
+SVG is for web-based applications (scaling needed).<br>
+
+```{r, results='hide', message = FALSE, warning = FALSE}
+
+### HISTOGRAM
+
+##### FOR JEDI'S BODY HEIGHT
+
+#list of file formats and their corresponding functions
+formats_jedi <- list(
+  png = function() png("Jedi_body_height_histogram.png", width = 800, height = 600),
+  pdf = function() pdf("Jedi_body_height_histogram.pdf", width = 8, height = 6),
+  svg = function() svg("Jedi_body_height_histogram.svg", width = 8, height = 6)
+)
+
+#generate and save the histogram in multiple formats
+lapply(formats_jedi, function(f) {
+  f()  #call the function to open the device
+    hist(magic_guys$length [magic_guys$species %in% "jedi"],
+     main = "Histogram of Jedi's Body Heights", 
+     xlab = "Body Height", 
+     col = "lightblue", 
+     breaks = 20, #to create bin
+     xaxt = 'n') #to remove the default of x-axis label
+    axis(1, at = seq(60, 273, by = 20)) #to add new x-axis label
+  dev.off()  #close the device
+})
+
+##### FOR SITH'S BODY HEIGHT
+
+#list of file formats and their corresponding functions
+formats_sith <- list(
+  png = function() png("Sith_body_height_histogram.png", width = 800, height = 600),
+  pdf = function() pdf("Sith_body_height_histogram.pdf", width = 8, height = 6),
+  svg = function() svg("Sith_body_height_histogram.svg", width = 8, height = 6)
+)
+
+#generate and save the histogram in multiple formats
+lapply(formats_sith, function(f) {
+  f()  #call the function to open the device
+    hist(magic_guys$length [magic_guys$species %in% "sith"],
+     main = "Histogram of Sith's Body Heights", 
+     xlab = "Body Height", 
+     col = "lightblue", 
+     breaks = 20, #to create bin
+     xaxt = 'n') #to remove the default of x-axis label
+    axis(1, at = seq(60, 273, by = 20)) #to add new x-axis label
+  dev.off()  #close the device
+})
+
+ggsave("body_height_geomhisto.png", plot = body_height_geomhisto, width = 8, height = 6, dpi = 300) #using ggplot
+ggsave("body_height_geomhisto.pdf", plot = body_height_geomhisto, width = 8, height = 6) #using ggplot
+ggsave("body_height_geomhisto.svg", plot = body_height_geomhisto, width = 8, height = 6) #using ggplot
+
+
+### BOXPLOT
+
+#list of file formats and their corresponding functions
+formats_box <- list(
+  png = function() png("body_height_bloxplot.png", width = 800, height = 600),
+  pdf = function() pdf("body_height_bloxplot.pdf", width = 8, height = 6),
+  svg = function() svg("body_height_bloxplot.svg", width = 8, height = 6)
+)
+
+#generate and save the boxplots in multiple formats
+lapply(formats_box, function(f) {
+  f()  #call the function to open the device
+    par(mar = c(7, 7, 7, 7))  #adjust margins if necessary
+    boxplot(length ~ species, 
+        data = magic_guys, 
+        main = "Comparison of body heights by species", 
+        xlab = "Species", 
+        ylab = "Body Height", 
+        col = c("lightblue", "lightgreen"),
+        cex = 2,          #general text size
+        cex.axis = 2,     #axis tick labels size
+        cex.lab = 2,      #axis labels size
+        cex.main = 2)     #main title size)
+  dev.off()  #close the device
+})
+
+ggsave("body_height_geombox.png", plot = body_height_geombox, width = 8, height = 6, dpi = 300) #using ggplot
+ggsave("body_height_geombox.pdf", plot = body_height_geombox, width = 8, height = 6) #using ggplot
+ggsave("body_height_geombox.svg", plot = body_height_geombox, width = 8, height = 6) #using ggplot
+
+
+```
+
+
+### Number 2A
+
+```{r}
+
+microarray_data <- read.delim(paste0(folder, "microarray_data.tab"))
+
+dim(microarray_data) #553 rows; 1000 columns
+
+```
+
+### Number 2B
+
+```{r}
+
+missing_genes_data <- data.frame(gene = names(colSums(is.na(microarray_data))), missingvalues = colSums(is.na(microarray_data)))
+
+#visualize the count of missing values
+ggplot(missing_genes_data, aes(x = gene, y = missingvalues)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  labs(title = "Missing Values per Gene", x = "Gene", y = "Number of Missing Values") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))  # Rotate x-axis labels for better visibility
+
+```
+
+### Number 2C
+
+```{r}
+missing_genes_data <- missing_genes_data %>% 
+  mutate(percent_missing = missingvalues / 553 * 100)
+                       
+missing_genes_data <- missing_genes_data %>% 
+  mutate(X = case_when(percent_missing > 10.000 ~ 10,
+                       percent_missing > 20.000 ~ 20,
+                       percent_missing > 50.000 ~ 50,
+                       TRUE ~ NA ))
+
+table(missing_genes_data$gene [missing_genes_data$X == 10], useNA = "always")
+table(missing_genes_data$gene [missing_genes_data$X == 20], useNA = "always")
+table(missing_genes_data$gene [missing_genes_data$X == 50], useNA = "always")
+```
+
+### NUMBER 2D
+
+```{r}
+
+gen = paste0("g", c(1:1000))
+
+for (i in gen) {
+    mean_value <- mean(microarray_data[, i], na.rm = TRUE)  #calculate mean, ignoring NAs
+    microarray_data[is.na(microarray_data[, i]), i] <- mean_value 
+}
+
+```
+
+### NUMBER 3
+
+```{r}
+summary(CO2)
+summary(CO2$uptake)
+summary(CO2$conc)
+
+ggplot(CO2, aes(x = uptake, fill = Type)) +
+  geom_histogram(position = "identity", alpha = 0.6, bins = 30) +
+  labs(title = "Distribution of CO2 uptake by Type", 
+  x = "CO2 uptake", 
+  y = "Frequency") + 
+  scale_fill_manual(values = c("lightblue", "lightgreen")) +
+  theme_minimal() + 
+  theme(plot.background = element_rect(fill = "white"),  #set plot background to white
+        panel.background = element_rect(fill = "white"))  #set panel background to white
+
+ggplot(CO2, aes(x = conc, fill = Type)) + #CO2 concentrations are the same for both cities
+  geom_histogram(position = "identity", alpha = 0.6, bins = 30) +
+  labs(title = "Distribution of CO2 concentration by Type", 
+  x = "CO2 concentration", 
+  y = "Frequency") + 
+  scale_fill_manual(values = c("lightblue", "lightgreen")) +
+  theme_minimal() + 
+  theme(plot.background = element_rect(fill = "white"),  #set plot background to white
+        panel.background = element_rect(fill = "white"))  #set panel background to white
+```
+
+
+# TASK 7
+
+```{r, eval = F}
+install.packages("devtools")
+```
+
+```{r, message = FALSE, warning = FALSE}
+library(devtools)
+```
+
+```{r, eval = F}
+devtools::install_github("hirscheylab/tidybiology")
+```
+
+```{r, message = FALSE, warning = FALSE}
+library("tidybiology")
+```
+
+### NUMBER 1A
+```{r}
+
+### CHROMOSOME DATA
+data(chromosome)
+dim(chromosome)
+
+
+summary_stats_chr <- chromosome %>%
+  summarize(
+    mean_variations = mean(variations, na.rm = TRUE),
+    median_variations = median(variations, na.rm = TRUE),
+    max_variations = max(variations, na.rm = TRUE),
+    
+    mean_protein_coding_genes = mean(protein_codinggenes, na.rm = TRUE),
+    median_protein_coding_genes = median(protein_codinggenes, na.rm = TRUE),
+    max_protein_coding_genes = max(protein_codinggenes, na.rm = TRUE),
+    
+    mean_miRNAs = mean(mi_rna, na.rm = TRUE),
+    median_miRNAs = median(mi_rna, na.rm = TRUE),
+    max_miRNAs = max(mi_rna, na.rm = TRUE)
+  )
+
+```
+
+### NUMBER 1B
+
+```{r}
+ggplot(chromosome, aes(x = length_mm)) +
+  geom_density(fill = "lightblue", alpha = 0.5) +
+  #geom_histogram(position = "identity", alpha = 0.6, bins = 30) +
+  labs(title = "Distribution of chromosome size",
+       x = "Chromosome size",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(plot.background = element_rect(fill = "white"),  #set plot background to white
+        panel.background = element_rect(fill = "white"))  #set panel background to white
+```
+
+### NUMBER 1C
+
+```{r}
+
+#Plot for protein-coding genes vs. chromosome length
+ggplot(chromosome, aes(x = length_mm, y = protein_codinggenes)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkblue") +  #adds a linear trend line
+  labs(title = "Protein-Coding Genes vs. Chromosome Length",
+       x = "Chromosome Length",
+       y = "Number of Protein-Coding Genes") +
+  theme_minimal()
+
+#Plot for mi_RNA vs. chromosome length
+ggplot(chromosome, aes(x = length_mm, y = mi_rna)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkblue") +  #adds a linear trend line
+  labs(title = "miRNAs vs. Chromosome Length",
+       x = "Chromosome Length",
+       y = "miRNAs") +
+  theme_minimal()
+
+cor(chromosome$length_mm, chromosome$protein_codinggenes, use = "complete.obs") #0.6060185
+cor(chromosome$length_mm, chromosome$mi_rna, use = "complete.obs") #0.7366973
+
+
+```
+
+
+### NUMBER 1D
+
+```{r}
+
+### PROTEIN DATA
+
+data(proteins)
+dim(proteins)
+
+
+summary_stats_protein <- proteins %>%
+  summarize(
+    mean_length = mean(length, na.rm = TRUE),
+    median_length = median(length, na.rm = TRUE),
+    max_length = max(length, na.rm = TRUE),
+    
+    mean_mass = mean(mass, na.rm = TRUE),
+    median_mass = median(mass, na.rm = TRUE),
+    max_mass = max(mass, na.rm = TRUE),
+  )
+
+#Plot for mass vs. chromosome length
+ggplot(proteins, aes(x = length, y = mass)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "darkblue") +  #adds a linear trend line
+  labs(title = "Mass vs. Length",
+       x = "Length",
+       y = "Mass") +
+  theme_minimal()
+
+cor(proteins$length, proteins$mass, use = "complete.obs") #0.9991674
+
+
+```
+
+
+
